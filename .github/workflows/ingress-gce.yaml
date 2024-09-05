@@ -4,7 +4,7 @@ on:
     tags:
       - 'v*'
     paths:
-      - .github/workflows/configs/ingress-gce.yaml
+      - .github/workflows/ingress-gce.yaml
 
 env:
   IMAGE_NAME: ingress-gce
