@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glb-controller
+  namespace: kube-system
+  labels:
+    k8s-app: gcp-lb-controller
+    kubernetes.io/name: "GLBC"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: gcp-lb-controller
+  template:
+    metadata:
+      labels:
+        k8s-app: gcp-lb-controller
+        name: gcp-lb-controller
+    spec:
+      serviceAccountName: glbc
+      terminationGracePeriodSeconds: 600
+      hostNetwork: true
+      containers:
+      - image: ghcr.io/kron4eg/ingress-gce:e5417287376f055ca956e8841a1c1cb2f54e2319
+        name: l7-lb-controller
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - mountPath: /etc/gce/
+          name: gce-config-volume
+        - mountPath: /var/secrets/google
+          name: google-cloud-key
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+        command:
+        - glbc
+        - -v2
+        - --config-file-path=/etc/gce/gce.conf.gen
+        - --healthz-port=8086
+        - --logtostderr
+        - --enable-frontend-config
+        - --enable-dual-stack-neg
+        - --run-l4-netlb-controller=true 
+        - --enable-l4ilb-dual-stack=true 
+        - --enable-l4netlb-dual-stack=true 
+        - --run-l4-controller=true 
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: glbc-gcp-key
+      - name: gce-config-volume
+        configMap:
+          name: gce-config
+          items:
+          - key: gce.conf.gen
+            path: gce.conf.gen

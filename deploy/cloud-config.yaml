@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  gce.conf.gen: |-
+    [global]
+    token-url = nil
+    project-id = kubermatic-dev
+    network-name = rafraf
+    subnetwork-name = my-subnet
+    node-tags = rafraf
+    local-zone=us-central1-c
+kind: ConfigMap
+metadata:
+  name: gce-config
+  namespace: kube-system
