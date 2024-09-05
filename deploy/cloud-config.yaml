@@ -3,11 +3,11 @@ data:
   gce.conf.gen: |-
     [global]
     token-url = nil
-    project-id = kubermatic-dev
-    network-name = rafraf
-    subnetwork-name = my-subnet
-    node-tags = rafraf
-    local-zone=us-central1-c
+    project-id = << project_id >>
+    network-name = << network_name >>
+    subnetwork-name = << subnet_name >>
+    node-tags = << nodes_tag >>
+    local-zone=<< zone >>
 kind: ConfigMap
 metadata:
   name: gce-config
