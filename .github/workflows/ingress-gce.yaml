@@ -1,0 +1,58 @@
+name: Build Ingress GCE
+on:
+  push:
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/configs/ingress-gce.yaml
+
+env:
+  IMAGE_NAME: ingress-gce
+  IMAGE_REPO: ghcr.io/kron4eg
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - name: Clone Project Repository
+        run: |
+          git clone https://github.com/kubernetes/ingress-gce.git ingress-gce
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '^1.22.5'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Set Metadata
+        id: vars
+        run: |
+          echo "TAG="${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "IMAGE=$IMAGE_REPO/$IMAGE_NAME" >> $GITHUB_OUTPUT
+     
+      - name: Build Binaries
+        working-directory: ingress-gce
+        run: |
+          make build
+
+      - name: Build Container Image
+        working-directory: ingress-gce
+        run: |
+          mv ../Dockerfile Dockerfile.complete
+          docker build -f Dockerfile.complete -t ${{ steps.vars.outputs.IMAGE }}:${{ steps.vars.outputs.TAG }} .
+
+      - name: Log into registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Push Container Image
+        run: |
+          docker push ${{ steps.vars.outputs.IMAGE }}:${{ steps.vars.outputs.TAG }} 
+
+      
