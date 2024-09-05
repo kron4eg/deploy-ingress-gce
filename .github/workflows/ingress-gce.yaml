@@ -1,8 +1,6 @@
 name: Build Ingress GCE
 on:
   push:
-    tags:
-      - 'v*'
     paths:
       - .github/workflows/ingress-gce.yaml
 
