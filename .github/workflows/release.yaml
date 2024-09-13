@@ -34,8 +34,8 @@ jobs:
 
       - name: Docker setup buildx
         uses: docker/setup-buildx-action@v3
-        # with:
-        #   platforms: linux/amd64,linux/arm64
+        with:
+          platforms: linux/amd64,linux/arm64
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
@@ -44,4 +44,4 @@ jobs:
           tags: |
             ghcr.io/kron4eg/deploy-ingress-gce:${{ github.ref_name }}
           push: true
-          # platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64
