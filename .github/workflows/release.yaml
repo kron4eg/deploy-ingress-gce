@@ -6,6 +6,12 @@ on:
 
 jobs:
   build-push:
+    permissions:
+      # give GITHUB_TOKEN write permissions
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the gardener/ingress-gce repository
