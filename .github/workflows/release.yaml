@@ -1,25 +1,27 @@
 name: Build and push a release image
 on:
-  push:
-    tags:
-      - '**'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'New release tag to publish'
+        required: true
+        type: string
+      ingress_gce_version:
+        description: 'kubernetes/ingress-gce version to build'
+        required: true
+        type: string
 
 jobs:
   build-push:
     permissions:
       # give GITHUB_TOKEN write permissions
       packages: write
-      contents: read
+      contents: write
       id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the gardener/ingress-gce repository
         uses: actions/checkout@v4
-
-      - name: Get kubernetes/ingress-gce version to build
-        id: ingress_version
-        run: |
-          echo "INGRESS_GCE_VERSION=$(cat INGRESS-GCE-VERSION)" >> $GITHUB_OUTPUT
 
       - name: Checkout the kubernetes/ingress-gce repository
         uses: actions/checkout@v4
@@ -27,7 +29,7 @@ jobs:
           repository: 'kubernetes/ingress-gce'
           path: './ingress-gce'
           persist-credentials: false
-          ref: '${{ steps.ingress_version.outputs.INGRESS_GCE_VERSION }}'
+          ref: '${{ inputs.ingress_gce_version }}'
 
       - name: Login to registry
         uses: docker/login-action@v3
@@ -46,6 +48,11 @@ jobs:
         with:
           context: .
           tags: |
-            ghcr.io/gardener/ingress-gce:${{ github.ref_name }}
+            ghcr.io/kron4eg/deploy-ingress-gce:${{ inputs.release_tag }}
           push: true
-          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64,linux/arm64
+
+      - name: Create new release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ inputs.release_tag }}
